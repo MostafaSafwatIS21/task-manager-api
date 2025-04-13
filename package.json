@@ -17,12 +17,18 @@
   },
   "homepage": "https://github.com/MostafaSafwatIS21/task-manager-api#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoos": "^0.0.1-security",
     "mongoose": "^8.13.2",
+    "multer": "^1.4.5-lts.2",
+    "nodemailer": "^6.10.1",
     "npm": "^11.3.0",
+    "sharp": "^0.34.1",
     "uninstall": "^0.0.0"
   }
 }
