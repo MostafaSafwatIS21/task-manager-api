@@ -4,7 +4,7 @@
   "description": " Backend Challenge – Task Manager API: ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,14 @@
   "bugs": {
     "url": "https://github.com/MostafaSafwatIS21/task-manager-api/issues"
   },
-  "homepage": "https://github.com/MostafaSafwatIS21/task-manager-api#readme"
+  "homepage": "https://github.com/MostafaSafwatIS21/task-manager-api#readme",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoos": "^0.0.1-security",
+    "mongoose": "^8.13.2",
+    "npm": "^11.3.0",
+    "uninstall": "^0.0.0"
+  }
 }
