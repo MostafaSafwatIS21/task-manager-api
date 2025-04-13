@@ -146,6 +146,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   });
 });
 
+/**@TODO  will check it   */
 /**
  * @desc    Reset password
  * @route   POST /api/v1/auth/resetPassword
