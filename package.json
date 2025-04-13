@@ -1,0 +1,19 @@
+{
+  "name": "task-manager-api",
+  "version": "1.0.0",
+  "description": " Backend Challenge – Task Manager API: ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MostafaSafwatIS21/task-manager-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MostafaSafwatIS21/task-manager-api/issues"
+  },
+  "homepage": "https://github.com/MostafaSafwatIS21/task-manager-api#readme"
+}
