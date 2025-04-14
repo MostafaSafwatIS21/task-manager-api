@@ -27,6 +27,7 @@ app.use("/api/v1/auth", authRoute);
 //     message: `Can't find ${req.originalUrl} on this server!`,
 //   });
 // });
+
 app.use(globalError);
 app.listen(process.env.PORT, () => {
   console.log(`Server Run on port ${process.env.PORT}`);

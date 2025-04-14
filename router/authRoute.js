@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const {
   register,
-  uploadUserPhoto,
-  resizeUserPhoto,
   login,
   logout,
   forgotPassword,
   resetPassword,
+  deleteMe,
+  protect,
 } = require("../controller/authController");
 
 const {
@@ -22,6 +22,8 @@ router.post("/logout", logout);
 // forget password routes
 router.post("/forgotPassword", forgotPassword);
 
-router.post("/resetPassword/:restCode", resetPasswordValidator, resetPassword);
+router.put("/resetPassword/:resetToken", resetPasswordValidator, resetPassword);
+
+router.delete("/deleteMe", protect, deleteMe);
 
 module.exports = router;

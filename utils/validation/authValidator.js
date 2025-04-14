@@ -41,13 +41,13 @@ exports.registerValidator = [
   expressValidator,
 ];
 exports.resetPasswordValidator = [
-  check("resetCode")
+  check("resetToken")
     .notEmpty()
     .withMessage("Reset code is required")
     .isString()
     .withMessage("Reset code must be a string"),
 
-  check("password")
+  check("newPassword")
     .notEmpty()
     .withMessage("Password is required")
     .isLength({ min: 6 })
@@ -58,7 +58,7 @@ exports.resetPasswordValidator = [
     .isLength({ min: 6 })
     .withMessage("Confirm Password must be at least 6 characters long")
     .custom((value, { req }) => {
-      if (value !== req.body.password) {
+      if (value !== req.body.newPassword) {
         throw new Error("Passwords do not match");
       }
 

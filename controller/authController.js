@@ -1,50 +1,52 @@
 const User = require("../model/userModel");
 const asyncHandler = require("express-async-handler");
 const AppError = require("../utils/appError");
-const multer = require("multer");
-const sharp = require("sharp");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
-// Set up multer storage
-const storage = multer.memoryStorage();
-// Set up multer upload
-const multerFilter = function (req, file, cb) {
-  if (file.mimetype.startsWith("image")) {
-    cb(null, true);
-  } else {
-    cb(new AppError("Not an image! Please upload only images.", 400), false);
-  }
-};
-
-const upload = multer({ storage, fileFilter: multerFilter });
-
-// Middleware to handle image upload
-exports.uploadUserPhoto = upload.single("image");
-// Middleware to resize image
-exports.resizeUserPhoto = asyncHandler(async (req, res, next) => {
-  console.log(req.file);
-
-  if (!req.file) return next();
-
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-
-  await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat("jpeg")
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.file.filename}`);
-  res.body.image = req.file.filename;
-  console.log(req.file.filename);
-
-  next();
-});
-
+// @desc    Create a JWT token
 const createToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
+
+/**
+ * @desc protect routes middleware
+ */
+exports.protect = asyncHandler(async (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return next(new AppError("You are not logged in", 401));
+  }
+  // Verify token
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  console.log("decodedToken", decodedToken);
+  // Check if user still exists
+  const currentUser = await User.findById({ _id: decodedToken.id });
+
+  if (!currentUser) {
+    return next(
+      new AppError("The user belonging to this token does no longer exist", 401)
+    );
+  }
+  // Check if user changed password after the token was issued
+  if (currentUser.passwordChangedAt) {
+    const passwordChangedTimestamp = parseInt(
+      currentUser.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    if (passwordChangedTimestamp > decodedToken.iat) {
+      res.clearCookie("token", { sameSite: "none", secure: true });
+      return next(
+        new AppError("User recently change his password, please login again.!")
+      );
+    }
+  }
+  req.user = currentUser;
+  next();
+});
 
 /**
  * @desc    Register a new user
@@ -119,19 +121,24 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new AppError("No user found with that email", 404));
   }
-  // Generate reset token
+  // Generate reset token without hashing
   const resetToken = user.createPasswordResetToken();
 
+  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${
+    req.protocol
+  }://${req.get(
+    "host"
+  )}/api/v1/auth/resetPassword/${resetToken}. If you didn't forget your password, please ignore this email!`;
   //send token to user email
   try {
     await sendEmail({
       email: user.email,
       subject: "Your password reset token (valid for 10 minutes)",
-      message: `Your password reset token is: ${req.protocol}://${req.get(
-        "host"
-      )}/api/v1/auth/resetPassword/${resetToken}`,
+      message,
     });
   } catch (error) {
+    console.log(error);
+
     user.passwordRestToken = undefined;
     user.passwordRestExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -140,13 +147,10 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
   res.status(200).json({
     status: "success",
-    message: `Your password reset token is: ${req.protocol}://${req.get(
-      "host"
-    )}/api/v1/auth/resetPassword/${resetToken}`,
+    message,
   });
 });
 
-/**@TODO  will check it   */
 /**
  * @desc    Reset password
  * @route   POST /api/v1/auth/resetPassword
@@ -155,25 +159,66 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 exports.resetPassword = asyncHandler(async (req, res, next) => {
   const hashedCode = crypto
     .createHash("sha256")
-    .update(req.params.restCode)
+    .update(req.params.resetToken)
     .digest("hex");
 
   const user = await User.findOne({
     passwordRestToken: hashedCode,
     passwordRestExpires: { $gt: Date.now() },
   });
+
+  console.log("resetPassword", user);
+
   if (!user) {
     return next(new AppError("Token is invalid or has expired", 400));
   }
-  user.password = req.body.password;
+
+  user.password = req.body.newPassword;
   user.passwordRestToken = undefined;
   user.passwordRestExpires = undefined;
   user.passwordChangedAt = Date.now();
 
-  await user.save();
+  await user.save({
+    validateBeforeSave: false,
+  });
 
   res.status(200).json({
     status: "success",
     message: "Password reset successfully back to login",
+    user,
   });
+});
+
+/**
+ * @desc Get my profile
+ * @route GET /api/v1/auth/getMe
+ * @access Private
+ */
+exports.getMe = asyncHandler(async (req, res, next) => {});
+/**
+ * @desc Delete my account
+ * @route DELETE /api/v1/auth/deleteMe
+ * @access Private
+ */
+
+exports.deleteMe = asyncHandler(async (req, res, next) => {
+  const currentPassword = req.body.password;
+  // // this will be more step not important because we already have user in req.user and check if it updated  password or not
+  // const user = await User.findById(req.user._id).select("+password");
+  if (!currentPassword) {
+    return next(new AppError("Please provide password", 400));
+  }
+
+  if (!(await req.user.correctPassword(currentPassword, req.user.password))) {
+    return next(new AppError("Incorrect password", 401));
+  }
+
+  await User.findByIdAndDelete(req.user._id);
+  res
+    .clearCookie("token", { sameSite: "none", secure: true })
+    .status(204)
+    .json({
+      status: "success",
+      message: "Account deleted successfully",
+    });
 });
