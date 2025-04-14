@@ -3,31 +3,34 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { log } = require("console");
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    minlength: [3, "Name must be at least 6 characters long"],
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      minlength: [3, "Name must be at least 6 characters long"],
+    },
+    email: {
+      type: String,
+      required: true,
+      minlength: [2, "Email must be at least 6 characters long"],
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: [6, "Password must be at least 6 characters long"],
+    },
+    image: {
+      type: String,
+      default: "default.jpeg",
+    },
+    passwordRestToken: String,
+    passwordRestExpires: Date,
+    passwordChangedAt: Date,
   },
-  email: {
-    type: String,
-    required: true,
-    minlength: [2, "Email must be at least 6 characters long"],
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: [6, "Password must be at least 6 characters long"],
-  },
-  image: {
-    type: String,
-    default: "default.jpeg",
-  },
-  passwordRestToken: String,
-  passwordRestExpires: Date,
-  passwordChangedAt: Date,
-});
+  { timestamps: true }
+);
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

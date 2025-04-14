@@ -4,6 +4,8 @@ const cookies = require("cookie-parser");
 const globalError = require("./middleware/errorHandler");
 
 const authRoute = require("./router/authRoute");
+const taskRoute = require("./router/taskRoute");
+const labelRoute = require("./router/labelRoute");
 
 require("dotenv").config();
 
@@ -20,6 +22,8 @@ app.use(express.json());
 app.use(cookies());
 
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/tasks", taskRoute);
+app.use("/api/v1/labels", labelRoute);
 
 // app.all("*", (req, res, next) => {
 //   res.status(404).json({
