@@ -39,6 +39,9 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Please provide a user"],
     },
+    shareId: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

@@ -1,5 +1,4 @@
 const express = require("express");
-const AppError = require("./utils/appError");
 const cookies = require("cookie-parser");
 const globalError = require("./middleware/errorHandler");
 
@@ -33,6 +32,17 @@ app.use("/api/v1/labels", labelRoute);
 // });
 
 app.use(globalError);
+
 app.listen(process.env.PORT, () => {
   console.log(`Server Run on port ${process.env.PORT}`);
+});
+
+// Handle error outside express
+
+process.on("unhandledRejection", (err) => {
+  console.log("unhandledRejection", err);
+  server.close(() => {
+    console.error("Shutting down..!");
+    process.exit(1);
+  });
 });

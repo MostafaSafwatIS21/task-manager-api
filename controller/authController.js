@@ -1,22 +1,20 @@
-const User = require("../model/userModel");
-const asyncHandler = require("express-async-handler");
-const AppError = require("../utils/appError");
-const jwt = require("jsonwebtoken");
-const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const asyncHandler = require("express-async-handler");
+const User = require("../model/userModel");
+const AppError = require("../utils/appError");
+const sendEmail = require("../utils/sendEmail");
 
 // @desc    Create a JWT token
-const createToken = (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, {
+const createToken = (payload) =>
+  jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
-};
-
 /**
  * @desc protect routes middleware
  */
 exports.protect = asyncHandler(async (req, res, next) => {
-  const token = req.cookies.token;
+  const { token } = req.cookies;
   if (!token) {
     return next(new AppError("You are not logged in", 401));
   }
@@ -136,8 +134,6 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
       message,
     });
   } catch (error) {
-    console.log(error);
-
     user.passwordRestToken = undefined;
     user.passwordRestExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -165,8 +161,6 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     passwordRestToken: hashedCode,
     passwordRestExpires: { $gt: Date.now() },
   });
-
-  console.log("resetPassword", user);
 
   if (!user) {
     return next(new AppError("Token is invalid or has expired", 400));

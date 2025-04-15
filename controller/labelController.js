@@ -1,6 +1,6 @@
+const asyncHandler = require("express-async-handler");
 const Label = require("../model/labelModel");
 const AppError = require("../utils/appError");
-const asyncHandler = require("express-async-handler");
 
 /** Check label ownership  middleware*/
 exports.checkLabelOwnership = asyncHandler(async (req, res, next) => {

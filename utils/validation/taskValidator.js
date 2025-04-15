@@ -1,5 +1,5 @@
-const expressValidator = require("../../middleware/expressValidator");
 const { body, check } = require("express-validator");
+const expressValidator = require("../../middleware/expressValidator");
 const Label = require("../../model/labelModel");
 
 exports.createTaskValidator = [

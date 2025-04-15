@@ -1,5 +1,5 @@
-const expressValidator = require("../../middleware/expressValidator");
 const { check } = require("express-validator");
+const expressValidator = require("../../middleware/expressValidator");
 
 exports.createLabelValidator = [
   check("name")
